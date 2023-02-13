@@ -1,0 +1,112 @@
+-------1: List all stations in an alphabetical order. Output should contain StationId, StationName.
+
+
+Select StationId, StationName
+From dimstation
+Order by StationName asc;
+
+
+----------2: List all trips that collected waste > 40. Output should contain TripId, Waste.
+
+
+Select TripId, Waste
+From facttrips
+Where Waste > 40;
+
+
+----------3: List average waste collected for each date. Output should contain DateId, average waste.
+
+
+Select DateId, AVG(Waste) as avg_Waste
+From facttrips
+Group by DateId;
+
+---------4: List truck Names with their count. Output should contain TruckName, count.
+
+Select TruckName, count(TruckId) as count_Trucks
+From dimtruck
+Group by TruckName;
+
+
+---------5: List City with total waste collected. Output should contain CityName, total_Waste.
+
+Select st.StationName as CityName, sum(tr.Waste) as total_Waste
+From dimstation st
+Left outer join facttrips tr
+On st.StationId = tr.StationId
+Group by st.StationName;
+
+
+--------6: List minimum waste collected per quarter in 2019. Output should contain QuarterName, minimum waste.
+
+Select min(tr.Waste) as min_Waste, dt.QuarterName as QuarterName
+from facttrips tr
+Left outer join dimdate dt
+On tr.dateId = dt.dateId and dt.year=2019
+Group by dt.QuarterName;
+
+-------7: List maximum waste collected in Q1 in Sao Paulo. Output should contain QuarterName, City, maximum Waste.
+
+
+Select dt.QuarterName, st.StationName, max(tr.Waste) as max_Waste
+From facttrips tr
+Left outer join dimstation st
+On tr.StationId = st.StationId
+Left outer join dimdate dt
+On tr.dateId = dt.dateId
+Where dt.QuarterName = "Q1"
+And st.StationName like "%Sao Paulo%"
+Group by dt.QuarterName, st.StationName;
+
+
+------8: List the days of the week results in the highest average waste collected by Volvo trucks. Output should contain WeekDayName, TruckName, avg_Waste.
+
+
+Select dt.WeekDayName, tru.truckName, AVG(tr.Waste) as avg_Waste
+From facttrips tr
+Left outer join dimtruck tru
+On tr.TruckId = tru.TruckId
+Left outer join dimdate dt
+On tr.dateId = dt.dateId
+Where tru.TruckName like "%Volvo%"
+Group by dt.WeekDayName, tru.TruckName
+ORDER by AVG(tr.Waste)
+DESC Limit 7;
+
+-----9: List the dates when each city collected its maximum Waste. Output should contain city, date, maximum Waste.
+
+Select st.StationName as city, dt.date, a.waste
+From (
+Select StationId, DateId, Waste, rank() over (partition by StationId order by Waste desc) as rnk
+From facttrips) a
+Left outer join dimdate dt
+On a.DateId = dt.DateId
+Left outer join dimstation st
+On a.StationId = st.StationId
+Where a.rnk = 1;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
